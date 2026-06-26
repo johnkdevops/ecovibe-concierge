@@ -1,0 +1,46 @@
+[project]
+name = "ecovibe-concierge"
+version = "0.1.0"
+description = "Multi-Agent EcoVibe Concierge - 5-Day AI Agents Capstone Project"
+requires-python = ">=3.12"
+dependencies = [
+    # Google Cloud & Vertex AI
+    "google-cloud-aiplatform>=1.70.0",
+    "google-cloud-storage>=2.18.0",
+    "google-auth>=2.35.0",
+    "google-cloud-logging>=3.11.0",      # For observability
+    
+    # Environment & Config
+    "python-dotenv>=1.0.1",
+    
+    # Web / API (for deployment)
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    
+    # Optional but useful
+    "pydantic>=2.9.0",
+    "httpx>=0.27.0",
+    "pandas>=2.2.0",                     # For data handling if needed
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=24.8.0",
+    "ruff>=0.6.0",
+    "pytest>=8.3.0",
+]
+
+[tool.uv]
+python-preference = "system"
+cache-dir = "C:/KodeKloud_Pro/Google_Cloud/5-Day_AI_Agents_Intensive_Vibe_Coding_Course_With_Google/uv-cache"
+
+# Optional: Lock file settings
+[tool.uv.sources]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.black]
+line-length = 100
+target-version = ['py312']
