@@ -43,22 +43,40 @@ It demonstrates **end-to-end agentic development** using techniques from all 5 d
 
 ```bash
 ecovibe-concierge/
-├── .env.example
-├── pyproject.toml
-├── README.md
-├── orchestrator/
-│   └── SKILL.md
-├── skills/
-│   ├── tracker-skill/
-│   │   └── SKILL.md
+├── .env                  # Environment secrets (API Keys, GCP details)
+├── .gitignore            # Excludes dependencies, Python caches, and state logs
+├── .python-version       # Virtual environment Python engine definition (3.12.13)
+├── LICENSE.md            # Open-source compliance mapping
+├── main.py               # Active central gateway & routing backend (FastAPI)
+├── pyproject.toml        # Declarative uv-compatible dependency manifest
+├── README.md             # Project roadmap & operational instructions
+├── uv.lock               # Cryptographically pinned lockfile for reproducibility
+│
+├── deployment/           # Day 5 Production Containerization
+│   ├── Dockerfile        # Multi-stage optimized build file
+│   └── cloud-run.yaml    # Declarative Cloud Run deployment manifest
+│
+├── memory/               # Context Persistence Subsystem
+│   ├── memory_manager.py # I/O interface for profile management
+│   └── user_profile.json # Active user preference & footprint tracking state
+│
+├── orchestrator/         # Day 3 Agentic Definition Manifests
+│   ├── AGENTS.md         # Multi-agent system orchestration definitions
+│   └── SKILLS.md         # Pluralized agentic prompt/skill definition
+│
+├── scripts/              # Local Diagnostic Tools
+│   └── models.py         # Model discovery and validation tester
+│
+├── skills/               # Specialist Agent Architectures
+│   ├── planner-skill/
+│   │   └── SKILL.md      # Goal setting, schedules, and personalized calendar prompts
 │   ├── researcher-skill/
-│   │   └── SKILL.md
-│   └── planner-skill/
-│       └── SKILL.md
-├── tools/
-│   └── emission_calculator.py
-├── .github/
-└── deployment/
+│   │   └── SKILL.md      # Grounded Search context instructions
+│   └── tracker-skill/
+│       └── SKILL.md      # Mathematical processing instructions
+│
+└── tools/                # Business Math & Core API Implementations
+    └── emission_calculator.py
 ```
 
 ---
@@ -138,6 +156,29 @@ rm -rf .venv
 ```
 
 ---
+
+## Deployment
+
+- **Prototype**: Cloud Run
+- **Production**: Vertex AI Agent Engine
+
+### Deployment (Cloud Run)
+
+# 1. Build & Deploy
+```bash
+# Build and push
+gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/ecovibe-concierge .
+
+# 2. Deploy to Cloud Run
+gcloud run deploy ecovibe-concierge \
+  --image gcr.io/YOUR_PROJECT_ID/ecovibe-concierge \
+  --platform managed \
+  --region YOUR_REGION \
+  --allow-unauthenticated \
+  --port 8080
+``` 
+
+---
 ## Architecture & Course Mapping
 This project explicitly demonstrates techniques from all 5 days of the course:
 
@@ -146,13 +187,6 @@ This project explicitly demonstrates techniques from all 5 days of the course:
 - **Day 3**: SKILL.md specialist agents + memory + planning
 - **Day 4**: Security, guardrails, human-in-the-loop, evaluation
 - **Day 5**: Production deployment + observability
-
----
-
-## Deployment
-
-- **Prototype**: Cloud Run
-- **Production**: Vertex AI Agent Engine
 
 ---
 

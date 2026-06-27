@@ -16,3 +16,11 @@ wheels/
 # uv lock
 uv.lock
 
+# Antigravity
+.agents
+.antigravity
+
+# Storage
+.storage
+
+

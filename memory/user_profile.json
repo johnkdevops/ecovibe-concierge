@@ -1,0 +1,22 @@
+{
+  "user_id": "default_user",
+  "name": "Alex",
+  "location": "New York, USA",
+  "preferences": {
+    "diet": "omnivore",
+    "transport": "car",
+    "goals": [
+      "reduce weekly carbon footprint by 20%",
+      "eat meat less than 3 times per week"
+    ]
+  },
+  "stats": {
+    "total_emissions_kg_this_month": 245.8,
+    "average_daily_kg": 8.2,
+    "streak_days": 12,
+    "last_driving_emissions": 18.18,
+    "last_driving_value": 45.0,
+    "last_driving_unit": "miles"
+  },
+  "last_updated": "2026-06-27T19:50:38.575587"
+}
