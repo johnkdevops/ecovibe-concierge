@@ -28,7 +28,8 @@ dev = [
     "black>=24.8.0",
     "ruff>=0.6.0",
     "pytest>=8.0.0",
-    "anyio>=4.0.0"
+    "anyio>=4.0.0",
+    "pytest-bdd>=7.0.0"
 ]
 
 # Ensure pytest always resolves the project root for imports
