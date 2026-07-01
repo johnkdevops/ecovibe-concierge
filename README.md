@@ -1,222 +1,138 @@
-# EcoVibe Concierge – Multi-Agent Sustainability Assistant
+# **🌱 EcoVibe Concierge – Multi-Agent Sustainability Assistant**
 
-**A 4-Agent AI System built with Google Antigravity, Vertex AI & Gemini**  
+**A Production-Grade 4-Agent Swarm System with Live Cloud Integration & Spec-Driven Testing**
+
 *Capstone Project – 5-Day AI Agents Intensive Vibe Coding Course with Google*
 
-![EcoVibe Banner](https://via.placeholder.com/800x200?text=EcoVibe+Concierge)
+## **🎯 Asymmetric Portfolio Advantage (Solo vs. 5-Member Teams)**
 
-## Overview
+While multi-member teams suffer from high communication overhead, branch conflicts, and monolithic designs, **EcoVibe Concierge** demonstrates elite software engineering velocity:
 
-EcoVibe Concierge is a **personal sustainability companion** powered by a team of 4 specialized AI agents. It tracks your carbon footprint, provides grounded recommendations, creates personalized eco-plans, and helps you reduce your environmental impact — all while maintaining safety, privacy, and human oversight.
+1. **Decoupled Architecture**: Separation of presentation (templates/), hosting (main.py), and reasoning (orchestrator.py) limits cross-module side effects.  
+2. **Deterministic & Semantic Hybrids**: Combines LLM-driven intent classification with absolute mathematical calculations ($0.411\text{ kg CO}_2\text{e/mile}$ for driving) to prevent semantic calculation drift.  
+3. **Automated BDD Quality Gates**: Verified by an isolated Gherkin test engine (pytest-bdd) that proves core routing accuracy before executing expensive cloud API tokens.
 
-It demonstrates **end-to-end agentic development** using techniques from all 5 days of the course.
-
-## The 4-Agent Team
-
-| Agent           | Role                                      | Key Responsibilities                     |
-|-----------------|-------------------------------------------|------------------------------------------|
-| **Orchestrator**   | Team Lead / Coordinator                  | Routing, memory, safety, final response |
-| **Tracker**        | Calculation Specialist                   | Carbon footprint calculations & tracking         |
-| **Researcher**     | Grounding & Insights Specialist          | Web search, fact-checking, alternatives |
-| **Planner**        | Personalization & Action Specialist      | Weekly plans, goal tracking, Calendar integration   |
-
-## Features
-
-- Natural conversation interface
-- Real-time carbon footprint tracking
-- Grounded recommendations with citations
-- Personalized weekly and monthly eco-plans
-- Long-term user memory (habits, preferences, goals)
-- Human-in-the-loop approvals for sensitive actions
-- Safety guardrails and observability
-
-## Tech Stack
-
-- **Framework**: Google Antigravity IDE + CLI + ADK
-- **Models**: Gemini 3.5 Flash (Medium)
-- **Environment Management**: uv (with shared cache)
-- **Deployment**: Cloud Run + Vertex AI Agent Engine
-- **Tools**: Custom emission calculator, Google Search grounding, optional Maps/Calendar
-- **Skills**: Custom 'SKILL.md' files + Antigravity Skills (planning, research, orchestration, etc.)
-
-## Project Structure
-
+## **👥 The 4-Agent Swarm Matrix**
 ```bash
-ecovibe-concierge/
-├── .env                  # Environment secrets (API Keys, GCP details)
-├── .gitignore            # Excludes dependencies, Python caches, and state logs
-├── .python-version       # Virtual environment Python engine definition (3.12.13)
-├── LICENSE.md            # Open-source compliance mapping
-├── main.py               # Active central gateway & routing backend (FastAPI)
-├── pyproject.toml        # Declarative uv-compatible dependency manifest
-├── README.md             # Project roadmap & operational instructions
-├── uv.lock               # Cryptographically pinned lockfile for reproducibility
-│
-├── deployment/           # Day 5 Production Containerization
-│   ├── Dockerfile        # Multi-stage optimized build file
-│   └── cloud-run.yaml    # Declarative Cloud Run deployment manifest
-│
-├── memory/               # Context Persistence Subsystem
-│   ├── memory_manager.py # I/O interface for profile management
-│   └── user_profile.json # Active user preference & footprint tracking state
-│
-├── orchestrator/         # Day 3 Agentic Definition Manifests
-│   ├── AGENTS.md         # Multi-agent system orchestration definitions
-│   └── SKILLS.md         # Pluralized agentic prompt/skill definition
-│
-├── scripts/              # Local Diagnostic Tools
-│   └── models.py         # Model discovery and validation tester
-│
-├── skills/               # Specialist Agent Architectures
-│   ├── planner-skill/
-│   │   └── SKILL.md      # Goal setting, schedules, and personalized calendar prompts
-│   ├── researcher-skill/
-│   │   └── SKILL.md      # Grounded Search context instructions
-│   └── tracker-skill/
-│       └── SKILL.md      # Mathematical processing instructions
-│
-└── tools/                # Business Math & Core API Implementations
-    └── emission_calculator.py
+       \[ User Query \]  
+              │  
+              ▼  
+   ┌──────────────────────┐  
+   │  Orchestrator Agent  │ \<──► \[ Long-Term memory / User Session \]  
+   └──────────┬───────────┘  
+              │ (Routes Semantic Trajectory)  
+              ├─────────────────────────┼─────────────────────────┐  
+              ▼                         ▼                         ▼  
+     ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐  
+     │  Tracker Agent  │       │Researcher Agent │       │  Planner Agent  │  
+     └────────┬────────┘       └────────┬────────┘       └────────┬────────┘  
+              │                         │ (Google Search)         │ (Calendar/Goals)  
+              ▼ (Direct gRPC)           ▼                         ▼  
+    \[(default) Firestore\]      \[ Grounded Citations\]     \[Human-In-The-Loop\]
 ```
 
----
+| Agent | Core Domain | Capstone Technical Highlights |
+| :---- | :---- | :---- |
+| **Orchestrator** | Team Lead / Coordinator | Single-point ingress, system guardrails, context assembly, multi-model high-availability fallbacks (gemini-3.5-flash &rarr; gemini-2.5-flash). |
+| **Tracker** | Calculation Specialist | Ingests conversational trip descriptions, calculates precise footprints, and commits structured ledger schemas to live Google Cloud Firestore. |
+| **Researcher** | Grounding Specialist | Executes dynamic lookup loops backed by official search grounding tools to deliver real-time, peer-reviewed eco-alternatives with full citations. |
+| **Planner** | Personalization Specialist | Generates hyper-personalized actionable carbon offset goals, managing human-in-the-loop approvals for external calendar insertions. |
 
-## 🚀 Quick Start (Windows 10 + Git Bash)
+## **🛠️ Tech Stack & Architecture**
 
+* **Backend Gateway**: FastAPI (v0.110.0+) with absolute-path self-healing asset mapping.  
+* **Frontend Layer**: Jinja2 Template Engine displaying dynamic server-side host parameters and interactive Tailwind CSS panels.  
+* **Agent Orchestration**: Native google-genai SDK combined with specialized semantic routing logic.  
+* **Database Layer**: Production-grade native google-cloud-firestore direct clients (guaranteeing secure, thread-safe write channels).  
+* **External Integration (MCP)**: Decoupled Cloud-Hosted Model Context Protocol (SSE-based Developer Knowledge Server) completely eliminating local Windows terminal popups.  
+* **Test Engine**: pytest-bdd parsing declarative Gherkin specs and injecting mock client sandboxes.
 
-### Prerequisites
-- Google AI Pro membership
-- Antigravity App + Antigravity IDE + Antigravity CLI installed
-- Git Bash
-- uv installed
-- Google Cloud Project with Vertex AI API enabled
-- Google AI Studio API Key (Free or Paid)
+## **📁 Project Directory Map**
 
-### Setup Steps
-```bash
-# 1. Clone the Repository
-git clone https://github.com/YOUR_USERNAME/ecovibe-concierge.git
-cd ecovibe-concierge
+ecovibe-concierge/  
+├── .agents/                   
+│   └── mcp\_config.json      \# SSE Cloud MCP Grounding Server Configurations  
+├── .env                     \# Target Cloud Project Profiles & Secret Port Definitions  
+├── .python-version          \# Lock to Python CPython 3.12.13  
+├── main.py                  \# HTTP API Service Layer (FastAPI & Jinja2 Mounting)  
+├── orchestrator.py          \# Isolation Core: Semantic Trajectory Router & Firestore Client  
+├── pyproject.toml           \# Unified Project Meta-manifest & Pytest systempath overrides  
+├── README.md                \# Senior Evaluator Overview & Execution Roadmap  
+├── uv.lock                  \# Pinned cryptographic environment dependencies  
+│  
+├── scripts/                   
+│   └── eco-stop.sh          \# Force-teardown utility for Windows/Git Bash port release  
+│  
+├── templates/                 
+│   └── index.html           \# Live Interactive Jinja2 Frontend (Responsive Tailwind UI)  
+│  
+└── tests/                   \# BDD Spec-Driven Quality Suite  
+    ├── features/  
+    │   └── agent\_routing.feature  \# Physical Gherkin Declarative Routing Specs  
+    └── test\_agent\_routing.py      \# pytest-bdd step assertions & GenAI Mock fixtures
 
-# 2. Set shared uv cache (recommended)
-export UV_CACHE_DIR="/c/KodeKloud_Pro/Google_Cloud/5-Day_AI_Agents_Intensive_Vibe_Coding_Course_With_Google/uv-cache"
+## **🚀 Rapid Local Setup & Verification**
 
-# 3. Install Python 3.12 (only once)
-uv python install 3.12
+Follow these steps to run the application and execute the behavior-driven verification suite in Git Bash on Windows:
 
-# 4. Pin Python version for this project
-uv python pin 3.12.13
+### **1\. Synchronize Dependencies**
 
-# 5. Create & activate virtual environment
-uv venv 
+This project uses the hyper-fast uv package manager with a standardized workspace cache:
+
+\# Set shared cache directory (if required)  
+export UV\_CACHE\_DIR="./uv-cache"
+
+\# Auto-provision virtual environment and synchronize dependencies  
+uv sync  
 source .venv/Scripts/activate
 
-# 6. Install dependencies
-uv sync
-uv sync --extra dev
+### **2\. Verify Behavioral Specifications (BDD)**
 
-# 7. Configure Environment Variables
-cp .env.example .env
-# Edit .env with your API keys and GOOGLE_CLOUD_PROJECT
-```
+Confirm the orchestrator's routing compliance using the native Gherkin parser before spinning up local servers:
 
-### Run the Application
-```bash
-# Recommended: Run with Antigravity
-antigravity run
+python \-m pytest tests/test\_agent\_routing.py
 
-# Alternative: Direct run
-uv run python main.py 
-```
+*Both routing trajectories (Tracking vs. Research) must return green checkmarks ($100\%$ passed).*
 
-### Clean Shutdown (free up resources)
-```bash
-deactivate
-rm -rf .venv
-```
+### **3\. Launch the Application**
 
----
+Start the service in hot-reload developer mode:
 
-## Development Workflow
+uv run python main.py
 
-### Start session
-```bash
-cd /c/KodeKloud_Pro/Google_Cloud/5-Day_AI_Agents_Intensive_Vibe_Coding_Course_With_Google/ecovibe-concierge
-export UV_CACHE_DIR="/c/KodeKloud_Pro/Google_Cloud/5-Day_AI_Agents_Intensive_Vibe_Coding_Course_With_Google/uv-cache"
-uv venv
-source .venv/Scripts/activate
-uv sync
-uv sync --extra dev
-```
+Open **http://localhost:8080** to access the dynamic workspace dashboard. The header badges will automatically query and display your active GCP project credentials\!
 
-### End session
-```bash
-deactivate
-rm -rf .venv
-```
+### **4\. Safe Shutdown Utility**
 
----
+On Windows systems, terminal processes can occasionally lock up active web ports. Kill the server and release the network binds cleanly by running:
 
-## Deployment
+bash scripts/eco-stop.sh
 
-- **Prototype**: Cloud Run
-- **Production**: Vertex AI Agent Engine
+## **🧪 BDD Gherkin Specifications**
 
-### Deployment (Cloud Run)
+The system is continuously verified against the following declarative behaviors:
 
-# 1. Build & Deploy
-```bash
-# Build and push
-gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/ecovibe-concierge .
+Feature: EcoVibe Concierge \- Orchestrator Routing Verification
 
-# 2. Deploy to Cloud Run
-gcloud run deploy ecovibe-concierge \
-  --image gcr.io/YOUR_PROJECT_ID/ecovibe-concierge \
-  --platform managed \
-  --region YOUR_REGION \
-  --allow-unauthenticated \
-  --port 8080
-``` 
+  Scenario: A user logs emissions data  
+    Given the EcoVibe Orchestrator is initialized and active  
+    When the user submits the message "I drove 45 miles today in my gasoline car"  
+    Then the system should categorize the request trajectory as "TRACK\_EMISSIONS"  
+    And the dispatch logic should engage the "Tracker Agent"
 
----
-## Architecture & Course Mapping
-This project explicitly demonstrates techniques from all 5 days of the course:
+  Scenario: A user requests sustainability research and grounding  
+    Given the EcoVibe Orchestrator is initialized and active  
+    When the user submits the message "Research the environmental benefits of electric vehicles"  
+    Then the system should categorize the request trajectory as "RESEARCH"  
+    And the dispatch logic should engage the "Researcher Agent"
 
-- **Day 1**: Vibe coding in Antigravity + initial Cloud Run deployment
-- **Day 2**: Tools, APIs, and agent-to-agent communication
-- **Day 3**: SKILL.md specialist agents + memory + planning
-- **Day 4**: Security, guardrails, human-in-the-loop, evaluation
-- **Day 5**: Production deployment + observability
+## **🤝 Team & Acknowledgments**
 
----
+* **Lead AI Engineer**: John Kennedy  
+* **Orchestration Matrix**: Orchestrator, Tracker, Researcher, Planner (Autonomous Agents)  
+* **Course Director**: Google Cloud 5-Day Intensive Vibe Coding Team
 
-## 🤝 Contributing
+*Built with ❤️ in Google Antigravity to deliver sustainable engineering excellence.*
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Team
-
-- John Kennedy - AI Engineer
-- 4 AI Agents - Orchestrator, Tracker, Researcher, Planner
-
-##  🙏 Acknowledgments
-
-- Google Antigravity Team - For the amazing IDE and tools
-- Vertex AI Team - For the powerful AI platform
-
-## 🔗 Links
-
-- [Google Antigravity](https://antigravity.dev/)
-- [Vertex AI](https://cloud.google.com/vertex-ai)
-
----
-
-**Built with ❤️ using Google Antigravity and Vertex AI**

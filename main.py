@@ -1,6 +1,6 @@
 """
 EcoVibe Concierge - FastAPI Service Layer
-Imports and mounts the isolated Semantic Orchestrator.
+Imports and mounts the isolated Semantic Orchestrator from modules packaging.
 Uses Jinja2 templates to render the frontend view dynamically.
 """
 
@@ -30,11 +30,13 @@ except ValueError:
     console.print("[bold red]Error:[/bold red] PORT environment variable must be an integer.")
     sys.exit(1)
 
-# Import the isolated Orchestrator class
+# Import the modularized Orchestrator class from modules folder
 try:
     from modules.orchestrator import AgenticOrchestrator, firestore_active
 except ImportError:
-    console.print("[bold red]Import Error:[/bold red] Could not load orchestrator.py module.")
+    console.print("[bold red]Import Error:[/bold red] Could not load modules/orchestrator.py package.")
+    sys.exit(1)
+
 # Initialize FastAPI & Jinja2 Templates engine with absolute self-healing pathing
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
@@ -67,7 +69,7 @@ class ChatMessage(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    # Explicit keyword arguments guarantee compatibility across Starlette 0.28+ and 1.0.0+ signatures
+    # Explicit keyword arguments guarantee compatibility across Starlette versions
     return templates.TemplateResponse(
         request=request,
         name="index.html",
