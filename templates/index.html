@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌱 EcoVibe Concierge Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col">
+    <!-- Header Panel -->
+    <header class="bg-slate-800/80 border-b border-slate-700/50 backdrop-blur sticky top-0 z-50 p-4 shadow-lg">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div
+                    class="bg-emerald-500/20 text-emerald-400 p-2.5 rounded-xl border border-emerald-500/30 shadow-inner">
+                    <i class="fa-solid fa-leaf text-xl animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        EcoVibe Concierge <span
+                            class="text-xs font-normal px-2 py-0.5 bg-slate-700 rounded-full text-slate-300">v2.1</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Multi-Agent Intelligence System connected to Cloud Firestore</p>
+                </div>
+            </div>
+            <div
+                class="flex items-center space-x-2 text-xs bg-slate-900/60 px-3 py-1.5 rounded-lg border border-slate-700/40">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="text-slate-300 font-mono">FastAPI: Active</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Dynamic Chat Frame -->
+    <main class="flex-1 max-w-4xl w-full mx-auto flex flex-col p-4 overflow-hidden">
+        <div id="chat-box"
+            class="flex-1 bg-slate-800/40 border border-slate-700/30 rounded-2xl p-4 overflow-y-auto space-y-4 shadow-2xl backdrop-blur-sm min-h-[450px]">
+            <!-- Initial Welcome Wrapper -->
+            <div class="flex space-x-3 bg-slate-800/40 border border-slate-700/40 p-4 rounded-xl max-w-[85%]">
+                <div
+                    class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-md">
+                    AI
+                </div>
+                <div class="space-y-2 text-sm text-slate-200">
+                    <p class="font-semibold text-emerald-400">Welcome to your Personal Sustainability Hub!</p>
+                    <p>I am your **Orchestrator Agent**, synchronized with your Cloud Firestore database instance. Log
+                        your footprint metrics directly into your cloud repository, or query sustainability research
+                        details.</p>
+
+                    <!-- Dynamic Jinja Parameter Badges -->
+                    <div class="flex flex-wrap gap-2 py-1">
+                        <span
+                            class="text-[10px] bg-slate-700/80 border border-slate-600/50 rounded-md px-2 py-0.5 text-slate-300">
+                            <i class="fa-solid fa-cloud text-emerald-400 mr-1"></i> Active DB: <strong
+                                class="font-mono text-white">{{ project_id }}</strong>
+                        </span>
+                        <span
+                            class="text-[10px] bg-slate-700/80 border border-slate-600/50 rounded-md px-2 py-0.5 text-slate-300">
+                            <i class="fa-solid fa-microchip text-cyan-400 mr-1"></i> Engine: <strong
+                                class="font-mono text-white">{{ model_name }}</strong>
+                        </span>
+                    </div>
+
+                    <div class="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <button onclick="fillAndSend('🚗 I drove 45 miles today in my gasoline car.')"
+                            class="text-left text-xs bg-slate-700/50 hover:bg-slate-700 border border-slate-600/40 p-2.5 rounded-lg text-slate-300 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-car text-emerald-400"></i> Log a driving calculation
+                        </button>
+                        <button onclick="fillAndSend('Research the environmental benefits of electric vehicles.')"
+                            class="text-left text-xs bg-slate-700/50 hover:bg-slate-700 border border-slate-600/40 p-2.5 rounded-lg text-slate-300 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-magnifying-glass text-cyan-400"></i> Execute grounding lookups
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Controls Area -->
+        <div class="mt-4">
+            <form id="chat-form" class="flex space-x-2">
+                <input type="text" id="user-input" placeholder="Ask your Orchestrator anything..." required
+                    class="flex-1 bg-slate-800/80 text-white placeholder-slate-500 text-sm border border-slate-700 rounded-xl px-4 py-3.5 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all shadow-inner">
+                <button type="submit"
+                    class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm rounded-xl px-5 py-3.5 transition-all shadow-lg flex items-center space-x-2">
+                    <span>Send</span>
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- FrontEnd Async Logic -->
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+
+        function appendMessage(sender, text, isUser) {
+            const msgWrapper = document.createElement('div');
+            msgWrapper.className = `flex space-x-3 ${isUser ? 'justify-end' : ''}`;
+
+            const bubbleClass = isUser
+                ? 'bg-emerald-600 text-white rounded-br-none'
+                : 'bg-slate-800 border border-slate-700/60 text-slate-100 rounded-bl-none';
+
+            const avatar = isUser
+                ? '<div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm shadow-md order-2 ml-3">ME</div>'
+                : '<div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow-md mr-3">AI</div>';
+
+            msgWrapper.innerHTML = `
+                ${!isUser ? avatar : ''}
+                <div class="p-3.5 rounded-xl text-sm max-w-[80%] shadow-md whitespace-pre-line ${bubbleClass}">
+                    ${text}
+                </div>
+                ${isUser ? avatar : ''}
+            `;
+
+            chatBox.appendChild(msgWrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function fillAndSend(phrase) {
+            userInput.value = phrase;
+            chatForm.requestSubmit();
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            appendMessage('User', text, true);
+            userInput.value = '';
+
+            // Loader Element
+            const loader = document.createElement('div');
+            loader.className = 'flex items-center space-x-2 text-xs text-slate-400 italic pt-1';
+            loader.id = 'ai-loader';
+            loader.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin text-emerald-400"></i> <span>Orchestrator is resolving execution parameters...</span>';
+            chatBox.appendChild(loader);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                // Relative endpoints prevent browser origin block exceptions
+                const targetUrl = '/chat';
+                console.log('Dispatching request to:', targetUrl);
+
+                const response = await fetch(targetUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await response.json();
+                document.getElementById('ai-loader').remove();
+
+                if (response.ok) {
+                    appendMessage('AI', data.response, false);
+                } else {
+                    appendMessage('AI', `❌ **Error:** ${data.detail || 'Failed to synthesize prompt.'}`, false);
+                }
+            } catch (error) {
+                if (document.getElementById('ai-loader')) document.getElementById('ai-loader').remove();
+                appendMessage('AI', '❌ **Connection Failure:** Ensure your local FastAPI service is fully active. Check browser console logs.', false);
+                console.error('Diagnostic error trace:', error);
+            }
+        });
+    </script>
+</body>
+
+</html>
