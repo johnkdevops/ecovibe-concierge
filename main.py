@@ -1,16 +1,15 @@
 """
-EcoVibe Concierge - Upgraded Main Entry Point with Rich Terminal Telemetry & Diagnostics
+EcoVibe Concierge - Upgraded Main Entry Point with Native Firestore Integration
 Multi-Agent Sustainability Assistant utilizing the google-genai SDK.
-Supports live Firestore database writes and Developer Knowledge queries.
-Features a premium, fully responsive front-end chat interface with loopback diagnostic engine.
+Supports live Firestore database writes directly to 'eco-vibe-project'.
+Features permissive CORS security profiles and relative endpoints.
 """
 
 import os
 import sys
 import json
-import datetime
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -24,14 +23,12 @@ console = Console()
 # ---------------------------------------------------------
 # 1. Environment Configurations & Robust Checks
 # ---------------------------------------------------------
-# Default to John's active Firebase Project ID
+# Target John's active Firebase/Google Cloud Project ID
 GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", "eco-vibe-project")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 GEMINI_FALLBACK_MODEL = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-2.5-flash")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-
-# Set host to IP_ADDRESS or fall back to localhost for loopback stability
-IP_ADDRESS = os.getenv("IP_ADDRESS", "localhost")
+IP_ADDRESS = os.getenv("IP_ADDRESS", "0.0.0.0")
 
 try:
     PORT = int(os.getenv("PORT", "8080"))
@@ -44,7 +41,7 @@ try:
     from google import genai
     from google.genai import types
 except ImportError:
-    console.print("[bold red]Dependency Error:[/bold red] The official 'google-genai' SDK is missing. Please run 'uv sync'.")
+    console.print("[bold red]Dependency Error:[/bold red] The official 'google-genai' SDK is missing. Run 'uv add google-genai'.")
     sys.exit(1)
 
 # Initialize GenAI Client
@@ -59,13 +56,14 @@ firestore_active = False
 db_client = None
 try:
     from google.cloud import firestore
+    # Connect directly to the active Firebase environment project
     db_client = firestore.Client(project=GOOGLE_CLOUD_PROJECT)
     firestore_active = True
     console.print(f"[bold green]✓ Firestore Engine Connected:[/bold green] Active on Project '{GOOGLE_CLOUD_PROJECT}'")
 except Exception as e:
     console.print(
         f"[bold yellow]Warning:[/bold yellow] Local Google credentials not found or firestore package missing: {e}\n"
-        "[dim yellow]Using high-availability mock fallback for database calculations.[/dim yellow]"
+        "[dim yellow]Using high-availability mock fallback for database calculations. Run 'uv add google-cloud-firestore' if missing.[/dim yellow]"
     )
 
 # Log operational variables to the console on startup
@@ -74,7 +72,7 @@ console.print(Panel.fit(
     f"[cyan]Firestore Status:[/cyan] {'CONNECTED' if firestore_active else 'OFFLINE/MOCK_FALLBACK'}\n"
     f"[cyan]Primary Target Model:[/cyan] {GEMINI_MODEL}\n"
     f"[cyan]Fallback Target Model:[/cyan] {GEMINI_FALLBACK_MODEL}\n"
-    f"[cyan]Hosting Layer:[/cyan] {IP_ADDRESS}:{PORT}",
+    f"[cyan]Hosting Layer:[/cyan] http://localhost:{PORT}",
     title="[bold green]🌱 EcoVibe Engine + Live Firestore Config[/bold green]"
 ))
 
@@ -201,8 +199,10 @@ class AgenticOrchestrator:
                     doc_ref.set(record)
                     doc_id = doc_ref.id
                     db_status_message = f"✓ Document `{doc_id}` written successfully to collection `footprints` on project `{GOOGLE_CLOUD_PROJECT}`."
+                    console.print(f"[bold green]Firestore Log Success:[/bold green] Added document {doc_id} to collection 'footprints'")
                 except Exception as write_error:
                     db_status_message = f"⚠️ Firestore Write Failure: {write_error}"
+                    console.print(f"[bold red]Firestore Write Error:[/bold red] {write_error}")
             else:
                 db_status_message = "⚡ Sandbox Offline Mode: Calculated metrics parsed successfully (Firestore Client initialized in mock/fallback context)."
 
@@ -261,7 +261,7 @@ orchestrator = AgenticOrchestrator()
 # ---------------------------------------------------------
 app = FastAPI(title="EcoVibe Concierge Engine")
 
-# Add Permissive CORS to bypass browser security sandbox discrepancies
+# Permissive CORS headers prevent silent local network blocks
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -269,26 +269,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Custom Telemetry Middleware to capture, parse, and display EVERY network request in the Python Console
-@app.middleware("http")
-async def console_telemetry_middleware(request: Request, call_next):
-    console.print("\n[bold magenta]━━━━━━━━━━━━ NETWORK TELEMETRY ━━━━━━━━━━━━[/bold magenta]")
-    console.print(f"[bold cyan]→ INCOMING REQUEST:[/bold cyan] {request.method} {request.url}")
-    console.print(f"[dim]Client IP/Host:[/dim] {request.client.host if request.client else 'Unknown'}")
-    console.print(f"[dim]Headers:[/dim] {dict(request.headers)}")
-    
-    start_time = datetime.datetime.now()
-    try:
-        response = await call_next(request)
-        duration = datetime.datetime.now() - start_time
-        console.print(f"[bold green]← OUTGOING RESPONSE:[/bold green] Status {response.status_code} (Duration: {duration.total_seconds():.3f}s)")
-        return response
-    except Exception as exc:
-        console.print(f"[bold red]❌ REQUEST FAILURE:[/bold red] {exc}", style="red")
-        raise exc
-    finally:
-        console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]\n")
 
 class ChatMessage(BaseModel):
     message: str
@@ -415,11 +395,11 @@ async def root():
                 chatBox.scrollTop = chatBox.scrollHeight;
 
                 try {
-                    // Use a dynamic origin-relative URL to prevent CORS/IP mismatches
-                    const chatUrl = `${window.location.origin}/chat`;
-                    console.log(`Dispatched payload to: ${chatUrl}`);
-                    
-                    const response = await fetch(chatUrl, {
+                    // Relative endpoints prevent browser origin block exceptions
+                    const targetUrl = '/chat';
+                    console.log('Dispatching request to:', targetUrl);
+
+                    const response = await fetch(targetUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ message: text })
@@ -435,8 +415,8 @@ async def root():
                     }
                 } catch (error) {
                     if (document.getElementById('ai-loader')) document.getElementById('ai-loader').remove();
-                    console.error("Diagnostic Details for Connection Failure:", error);
-                    appendMessage('AI', `❌ **Connection Failure:** ${error.message}\\n\\nPlease try accessing the application on **http://localhost:8080** directly.`, false);
+                    appendMessage('AI', '❌ **Connection Failure:** Ensure your local FastAPI service is fully active. Check browser console logs.', false);
+                    console.error('Diagnostic error trace:', error);
                 }
             });
         </script>
@@ -446,8 +426,6 @@ async def root():
 
 @app.post("/chat")
 async def chat(payload: ChatMessage):
-    # Log incoming request payload variables in python terminal for diagnostic transparency
-    console.print(f"[dim]Incoming payload to /chat: {payload.message}[/dim]")
     if not payload.message.strip():
          raise HTTPException(status_code=400, detail="Input message string cannot be empty.")
     response_text = orchestrator.process(payload.message)
@@ -457,5 +435,4 @@ if __name__ == "__main__":
     import uvicorn
     import os
     module_name = os.path.splitext(os.path.basename(__file__))[0]
-    # Bind to IP_ADDRESS which defaults to "localhost" to match active Windows environment url definitions
     uvicorn.run(f"{module_name}:app", host=IP_ADDRESS, port=PORT, reload=True)
