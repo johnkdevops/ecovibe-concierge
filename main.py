@@ -1,15 +1,18 @@
 """
-EcoVibe Concierge - Upgraded Main Entry Point with MCP Tool Binding & Frontend UI
-Multi-Agent Sustainability Assistant utilizing the google-genai SDK
-Supports live Firestore mutations and Developer Knowledge queries via MCP channels.
+EcoVibe Concierge - Upgraded Main Entry Point with Rich Terminal Telemetry & Diagnostics
+Multi-Agent Sustainability Assistant utilizing the google-genai SDK.
+Supports live Firestore database writes and Developer Knowledge queries.
+Features a premium, fully responsive front-end chat interface with loopback diagnostic engine.
 """
 
 import os
 import sys
 import json
+import datetime
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from rich.console import Console
 from rich.panel import Panel
@@ -21,11 +24,14 @@ console = Console()
 # ---------------------------------------------------------
 # 1. Environment Configurations & Robust Checks
 # ---------------------------------------------------------
-GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", "device-streaming-8997208")
+# Default to John's active Firebase Project ID
+GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", "eco-vibe-project")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 GEMINI_FALLBACK_MODEL = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-2.5-flash")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-IP_ADDRESS = os.getenv("IP_ADDRESS", "0.0.0.0")
+
+# Set host to IP_ADDRESS or fall back to localhost for loopback stability
+IP_ADDRESS = os.getenv("IP_ADDRESS", "localhost")
 
 try:
     PORT = int(os.getenv("PORT", "8080"))
@@ -38,22 +44,38 @@ try:
     from google import genai
     from google.genai import types
 except ImportError:
-    console.print("[bold red]Dependency Error:[/bold red] The official 'google-genai' SDK is missing.")
+    console.print("[bold red]Dependency Error:[/bold red] The official 'google-genai' SDK is missing. Please run 'uv sync'.")
     sys.exit(1)
 
+# Initialize GenAI Client
 try:
     client = genai.Client()
 except Exception as e:
     console.print(f"[bold yellow]Warning:[/bold yellow] Could not initialize Client: {e}")
     client = None
 
-# Log operational variables to the console
+# Initialize native Firestore client
+firestore_active = False
+db_client = None
+try:
+    from google.cloud import firestore
+    db_client = firestore.Client(project=GOOGLE_CLOUD_PROJECT)
+    firestore_active = True
+    console.print(f"[bold green]✓ Firestore Engine Connected:[/bold green] Active on Project '{GOOGLE_CLOUD_PROJECT}'")
+except Exception as e:
+    console.print(
+        f"[bold yellow]Warning:[/bold yellow] Local Google credentials not found or firestore package missing: {e}\n"
+        "[dim yellow]Using high-availability mock fallback for database calculations.[/dim yellow]"
+    )
+
+# Log operational variables to the console on startup
 console.print(Panel.fit(
     f"[cyan]Project ID:[/cyan] {GOOGLE_CLOUD_PROJECT}\n"
+    f"[cyan]Firestore Status:[/cyan] {'CONNECTED' if firestore_active else 'OFFLINE/MOCK_FALLBACK'}\n"
     f"[cyan]Primary Target Model:[/cyan] {GEMINI_MODEL}\n"
     f"[cyan]Fallback Target Model:[/cyan] {GEMINI_FALLBACK_MODEL}\n"
     f"[cyan]Hosting Layer:[/cyan] {IP_ADDRESS}:{PORT}",
-    title="[bold green]🌱 EcoVibe Engine + MCP Controller[/bold green]"
+    title="[bold green]🌱 EcoVibe Engine + Live Firestore Config[/bold green]"
 ))
 
 # ---------------------------------------------------------
@@ -62,7 +84,7 @@ console.print(Panel.fit(
 class AgenticOrchestrator:
     """
     An Advanced Semantic Orchestrator that pairs Gemini model reasoning 
-    with modular toolsets exposed across your configured workspace MCP pipelines.
+    with modular toolsets and database integration.
     """
     def __init__(self):
         self.client = client
@@ -77,7 +99,7 @@ class AgenticOrchestrator:
                 model=GEMINI_MODEL, contents=contents, config=config
             )
         except Exception as primary_error:
-            console.print(f"[yellow]Warning: Primary failed. Switching to: {GEMINI_FALLBACK_MODEL}...[/yellow]")
+            console.print(f"[yellow]Warning: Primary failed ({primary_error}). Switching to: {GEMINI_FALLBACK_MODEL}...[/yellow]")
             return self.client.models.generate_content(
                 model=GEMINI_FALLBACK_MODEL, contents=contents, config=config
             )
@@ -91,9 +113,9 @@ class AgenticOrchestrator:
         try:
             routing_prompt = f"""
             Analyze this sustainability query and classify it into one of these operational pipelines:
-            - TRACK_EMISSIONS: Log data or modify documents inside user database trackers.
+            - TRACK_EMISSIONS: Log data, calculating distance, fuel metrics, or food intake to write into database trackers.
             - RESEARCH: Queries for grounding facts, environmental documentation parameters, or statistics.
-            - GENERAL: Friendly greetings or conversational text.
+            - GENERAL: Friendly greetings, small talk, or general platform help.
 
             Return response STRICTLY as a valid raw JSON object matching this schema:
             {{
@@ -113,6 +135,7 @@ class AgenticOrchestrator:
             
             decision = json.loads(response.text.strip())
             category = decision.get("category", "GENERAL")
+            console.print(f"[cyan]Selected Trajectory:[/cyan] {category}")
             
             if category == "TRACK_EMISSIONS":
                 return self._handle_mcp_tracking(user_input)
@@ -126,52 +149,107 @@ class AgenticOrchestrator:
 
     def _handle_mcp_tracking(self, user_input: str) -> str:
         """
-        Tracker specialist channel. Employs Firestore capabilities 
-        exposed via your configured Firebase MCP tool server definitions.
+        Extracts activity details, performs emission calculation, 
+        and writes the entry to Cloud Firestore 'footprints' collection.
         """
         sys_instruction = (
-            "You are the specialized EcoVibe Tracker Agent. You write calculations and user records "
-            "directly into Cloud Firestore database collections using your registered data tools."
+            "You are the specialized EcoVibe Parameter Extractor. Analyze the user statement and "
+            "extract the structured transaction properties. "
+            "Calculate the emissions_kg based on the standard factors: "
+            "- driving: 0.411 kg CO2e per mile"
+            "- flight: 0.240 kg CO2e per mile"
+            "- meat/beef: 27.0 kg CO2e per kg"
+            "Respond strictly in JSON format."
         )
-        
-        mcp_tools = []
+
+        extraction_prompt = f"""
+        Extract attributes from this text.
+        Text: "{user_input}"
+
+        Respond with a valid JSON matching this schema:
+        {{
+            "category": "driving" | "flight" | "diet" | "other",
+            "amount": float,
+            "unit": "miles" | "km" | "kg" | "hours",
+            "emissions_kg": float
+        }}
+        """
+
         try:
-            import mcp_client_runtime  
-            mcp_tools = mcp_client_runtime.get_tools("firebase-mcp-server")
-            console.print(f"[dim green]✓ Successfully loaded {len(mcp_tools)} tools from Firebase MCP Server[/dim green]")
-        except (ImportError, Exception):
-            console.print("[dim yellow]Note: External runtime context. Using native function schemas...[/dim yellow]")
-            mcp_tools = [] 
-        
-        config = types.GenerateContentConfig(
-            tools=mcp_tools if mcp_tools else None,
-            temperature=0.2,
-            system_instruction=sys_instruction
-        )
-        
-        response = self._generate_with_fallback(contents=user_input, config=config)
-        return f"### 🚗 Tracker Agent (Firebase Core)\n{response.text}"
+            config = types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.1,
+                system_instruction=sys_instruction
+            )
+            response = self._generate_with_fallback(contents=extraction_prompt, config=config)
+            data = json.loads(response.text.strip())
+
+            # Perform DB Write to Firestore
+            doc_id = "mock_sandbox_document"
+            db_status_message = ""
+            
+            if firestore_active and db_client:
+                try:
+                    doc_ref = db_client.collection("footprints").document()
+                    record = {
+                        "category": data.get("category", "other"),
+                        "amount": data.get("amount", 0.0),
+                        "unit": data.get("unit", "miles"),
+                        "emissions_kg": data.get("emissions_kg", 0.0),
+                        "timestamp": firestore.SERVER_TIMESTAMP
+                    }
+                    doc_ref.set(record)
+                    doc_id = doc_ref.id
+                    db_status_message = f"✓ Document `{doc_id}` written successfully to collection `footprints` on project `{GOOGLE_CLOUD_PROJECT}`."
+                except Exception as write_error:
+                    db_status_message = f"⚠️ Firestore Write Failure: {write_error}"
+            else:
+                db_status_message = "⚡ Sandbox Offline Mode: Calculated metrics parsed successfully (Firestore Client initialized in mock/fallback context)."
+
+            # Formulate friendly synthesis response
+            synthesis_prompt = f"""
+            Synthesize a brief, encouraging confirmation for the user based on this operation result.
+            Operation Status: {db_status_message}
+            Calculated Properties:
+            - Category: {data.get('category')}
+            - Quantity: {data.get('amount')} {data.get('unit')}
+            - Footprint: {data.get('emissions_kg')} kg CO2e
+
+            Offer a helpful eco-tip to offset or reduce this activity's impact. Keep under 100 words.
+            """
+
+            synthesis_response = self._generate_with_fallback(
+                contents=synthesis_prompt,
+                config=types.GenerateContentConfig(temperature=0.4)
+            )
+
+            return f"### 🚗 Tracker Agent (Firebase Core)\n\n{synthesis_response.text}\n\n**System Logs:**\n`{db_status_message}`"
+
+        except Exception as e:
+            return f"### 🚗 Tracker Agent (Error)\nFailed to parse emissions tracking variables: {str(e)}"
 
     def _handle_mcp_research(self, user_input: str) -> str:
         """
         Researcher specialist channel. Utilizes external public grounding 
-        via your developer knowledge SSE endpoint definition.
+        to ensure data points are science-backed.
         """
         sys_instruction = (
             "You are the EcoVibe Researcher Agent. Synthesize verified data points based on official "
-            "sustainability parameters and clean infrastructure choices."
+            "sustainability parameters. Always provide estimated comparative metrics to support your claims."
         )
         
+        # Inject search grounding tool directly into the configuration block
         config = types.GenerateContentConfig(
             temperature=0.3,
-            system_instruction=sys_instruction
+            system_instruction=sys_instruction,
+            tools=[{"google_search": {}}]
         )
         
         response = self._generate_with_fallback(contents=user_input, config=config)
         return f"### 🔍 Researcher Agent (Knowledge Base)\n{response.text}"
 
     def _handle_general(self, user_input: str) -> str:
-        chat_prompt = f"You are EcoVibe Concierge, an energetic sustainability platform assistant. Be brief and engaging. Respond to: {user_input}"
+        chat_prompt = f"You are EcoVibe Concierge, an energetic sustainability platform assistant. Be brief, friendly, and engaging. Respond to: {user_input}"
         response = self._generate_with_fallback(contents=chat_prompt)
         return response.text
 
@@ -182,6 +260,35 @@ orchestrator = AgenticOrchestrator()
 # 3. FastAPI Initialization & Premium UI Interface
 # ---------------------------------------------------------
 app = FastAPI(title="EcoVibe Concierge Engine")
+
+# Add Permissive CORS to bypass browser security sandbox discrepancies
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Custom Telemetry Middleware to capture, parse, and display EVERY network request in the Python Console
+@app.middleware("http")
+async def console_telemetry_middleware(request: Request, call_next):
+    console.print("\n[bold magenta]━━━━━━━━━━━━ NETWORK TELEMETRY ━━━━━━━━━━━━[/bold magenta]")
+    console.print(f"[bold cyan]→ INCOMING REQUEST:[/bold cyan] {request.method} {request.url}")
+    console.print(f"[dim]Client IP/Host:[/dim] {request.client.host if request.client else 'Unknown'}")
+    console.print(f"[dim]Headers:[/dim] {dict(request.headers)}")
+    
+    start_time = datetime.datetime.now()
+    try:
+        response = await call_next(request)
+        duration = datetime.datetime.now() - start_time
+        console.print(f"[bold green]← OUTGOING RESPONSE:[/bold green] Status {response.status_code} (Duration: {duration.total_seconds():.3f}s)")
+        return response
+    except Exception as exc:
+        console.print(f"[bold red]❌ REQUEST FAILURE:[/bold red] {exc}", style="red")
+        raise exc
+    finally:
+        console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]\n")
 
 class ChatMessage(BaseModel):
     message: str
@@ -199,6 +306,7 @@ async def root():
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     </head>
     <body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col">
+        <!-- Header Panel -->
         <header class="bg-slate-800/80 border-b border-slate-700/50 backdrop-blur sticky top-0 z-50 p-4 shadow-lg">
             <div class="max-w-4xl mx-auto flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -209,7 +317,7 @@ async def root():
                         <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
                             EcoVibe Concierge <span class="text-xs font-normal px-2 py-0.5 bg-slate-700 rounded-full text-slate-300">v2.0</span>
                         </h1>
-                        <p class="text-xs text-slate-400">Multi-Agent Intelligence System connected to MCP Gateway</p>
+                        <p class="text-xs text-slate-400">Multi-Agent Intelligence System connected to Cloud Firestore</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-2 text-xs bg-slate-900/60 px-3 py-1.5 rounded-lg border border-slate-700/40">
@@ -219,15 +327,17 @@ async def root():
             </div>
         </header>
 
+        <!-- Dynamic Chat Frame -->
         <main class="flex-1 max-w-4xl w-full mx-auto flex flex-col p-4 overflow-hidden">
             <div id="chat-box" class="flex-1 bg-slate-800/40 border border-slate-700/30 rounded-2xl p-4 overflow-y-auto space-y-4 shadow-2xl backdrop-blur-sm min-h-[450px]">
+                <!-- Initial Welcome Wrapper -->
                 <div class="flex space-x-3 bg-slate-800/40 border border-slate-700/40 p-4 rounded-xl max-w-[85%]">
                     <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-md">
                         AI
                     </div>
                     <div class="space-y-2 text-sm text-slate-200">
                         <p class="font-semibold text-emerald-400">Welcome to your Personal Sustainability Hub!</p>
-                        <p>I am your **Orchestrator Agent**, synchronized with your private workspace MCP servers. Tell me about your carbon accounting logs, or ask for facts regarding sustainability research options.</p>
+                        <p>I am your **Orchestrator Agent**, synchronized with your Cloud Firestore database instance. Log your footprint metrics directly into your cloud repository, or query sustainability research details.</p>
                         <div class="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <button onclick="fillAndSend('🚗 I drove 45 miles today in my gasoline car.')" class="text-left text-xs bg-slate-700/50 hover:bg-slate-700 border border-slate-600/40 p-2.5 rounded-lg text-slate-300 transition-all flex items-center gap-2">
                                 <i class="fa-solid fa-car text-emerald-400"></i> Log a driving calculation
@@ -240,6 +350,7 @@ async def root():
                 </div>
             </div>
 
+            <!-- Input Controls Area -->
             <div class="mt-4">
                 <form id="chat-form" class="flex space-x-2">
                     <input type="text" id="user-input" placeholder="Ask your Orchestrator anything..." required
@@ -252,6 +363,7 @@ async def root():
             </div>
         </main>
 
+        <!-- FrontEnd Async Logic -->
         <script>
             const chatBox = document.getElementById('chat-box');
             const chatForm = document.getElementById('chat-form');
@@ -303,7 +415,11 @@ async def root():
                 chatBox.scrollTop = chatBox.scrollHeight;
 
                 try {
-                    const response = await fetch('/chat', {
+                    // Use a dynamic origin-relative URL to prevent CORS/IP mismatches
+                    const chatUrl = `${window.location.origin}/chat`;
+                    console.log(`Dispatched payload to: ${chatUrl}`);
+                    
+                    const response = await fetch(chatUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ message: text })
@@ -319,7 +435,8 @@ async def root():
                     }
                 } catch (error) {
                     if (document.getElementById('ai-loader')) document.getElementById('ai-loader').remove();
-                    appendMessage('AI', '❌ **Connection Failure:** Ensure your local FastAPI service is fully active.', false);
+                    console.error("Diagnostic Details for Connection Failure:", error);
+                    appendMessage('AI', `❌ **Connection Failure:** ${error.message}\\n\\nPlease try accessing the application on **http://localhost:8080** directly.`, false);
                 }
             });
         </script>
@@ -329,6 +446,8 @@ async def root():
 
 @app.post("/chat")
 async def chat(payload: ChatMessage):
+    # Log incoming request payload variables in python terminal for diagnostic transparency
+    console.print(f"[dim]Incoming payload to /chat: {payload.message}[/dim]")
     if not payload.message.strip():
          raise HTTPException(status_code=400, detail="Input message string cannot be empty.")
     response_text = orchestrator.process(payload.message)
@@ -336,5 +455,7 @@ async def chat(payload: ChatMessage):
 
 if __name__ == "__main__":
     import uvicorn
+    import os
     module_name = os.path.splitext(os.path.basename(__file__))[0]
+    # Bind to IP_ADDRESS which defaults to "localhost" to match active Windows environment url definitions
     uvicorn.run(f"{module_name}:app", host=IP_ADDRESS, port=PORT, reload=True)
