@@ -6,7 +6,18 @@ metadata:
     cloud.googleapis.com/location: us-east1
 spec:
   template:
+    metadata:
+      annotations:
+        # Scale to 0 instances when idle (Ensures a $0/month baseline)
+        autoscaling.knative.dev/minScale: "0"
+        # Capping maximum instances to exactly 1 (Blocks auto-scaling billing spikes)
+        autoscaling.knative.dev/maxScale: "1"
+        # CPU is only allocated during request processing (Do not pay for idle container runtimes)
+        run.googleapis.com/cpu-throttling: "true"
+        # Dynamically boosts CPU during startup to bypass throttled cold-starts
+        run.googleapis.com/startup-cpu-boost: "true"
     spec:
+      containerConcurrency: 80 # High concurrency allowance per instance to maximize efficiency
       containers:
         - image: gcr.io/eco-vibe-project/ecovibe-concierge:latest
           ports:
@@ -14,7 +25,7 @@ spec:
           resources:
             limits:
               memory: 512Mi
-              cpu: 1000m
+              cpu: 1000m # 1 vCPU allocation
           env:
             - name: ENVIRONMENT
               value: "production"
@@ -24,3 +35,5 @@ spec:
               value: "gemini-3.5-flash"
             - name: GEMINI_FALLBACK_MODEL
               value: "gemini-2.5-flash"
+
+

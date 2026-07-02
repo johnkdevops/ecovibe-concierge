@@ -94,7 +94,7 @@ python \-m pytest tests/test\_agent\_routing.py
 
 *Both routing trajectories (Tracking vs. Research) must return green checkmarks ($100\%$ passed).*
 
-### **3\. Launch the Application**
+### **3\. Launch the Application(Local Server)**
 
 Start the service in hot-reload developer mode:
 
@@ -125,6 +125,16 @@ Feature: EcoVibe Concierge \- Orchestrator Routing Verification
     When the user submits the message "Research the environmental benefits of electric vehicles"  
     Then the system should categorize the request trajectory as "RESEARCH"  
     And the dispatch logic should engage the "Researcher Agent"
+
+## Development Workflow
+
+### Start session
+```bash
+cd /c/KodeKloud_Pro/Google_Cloud/5-Day_AI_Agents_Intensive_Vibe_Coding_Course_With_Google/ecovibe-concierge
+gcloud auth login
+PROJECT_ID=eco-vibe-project
+gcloud auth application-default set-quota-project $PROJECT_ID
+```
 
 ## **🤝 Team & Acknowledgments**
 
