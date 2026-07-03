@@ -18,6 +18,11 @@ spec:
         run.googleapis.com/startup-cpu-boost: "true"
     spec:
       containerConcurrency: 80 # High concurrency allowance per instance to maximize efficiency
+      # Maximum time (in seconds) that Knative will let a request run before timing out
+      timeoutSeconds: 300
+      # Native Knative Service Account binding (Eliminates the need for API keys!)
+      serviceAccountName: ecovibe-run-sa@eco-vibe-project.iam.gserviceaccount.com
+
       containers:
         - image: gcr.io/eco-vibe-project/ecovibe-concierge:latest
           ports:
@@ -35,5 +40,8 @@ spec:
               value: "gemini-3.5-flash"
             - name: GEMINI_FALLBACK_MODEL
               value: "gemini-2.5-flash"
+  traffic:
+    - percent: 100
+      latestRevision: true
 
 

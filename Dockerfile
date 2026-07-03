@@ -5,6 +5,10 @@ FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
 WORKDIR /app
 
+# Purge any leaked Windows PATH variables containing drive colons (e.g., C:\...)
+# and hard-reset to clean, standard Linux environment paths.
+ENV PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
+
 # Copy pyproject.toml and optionally uv.lock if present using a wildcard hack.
 # This prevents Docker from crashing the build if uv.lock is not yet generated locally!
 COPY pyproject.toml uv.loc[k] ./
@@ -18,10 +22,6 @@ RUN uv sync --no-install-project --no-dev
 FROM python:3.12-slim-bookworm
 
 WORKDIR /app
-
-# Purge any leaked Windows PATH variables containing drive colons (e.g., C:\...)
-# and hard-reset to clean, standard Linux environment paths.
-ENV PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
 
 # Ensure standard output/error stream streams unbuffered
 ENV PYTHONUNBUFFERED=1

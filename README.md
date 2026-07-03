@@ -134,6 +134,38 @@ cd /c/KodeKloud_Pro/Google_Cloud/5-Day_AI_Agents_Intensive_Vibe_Coding_Course_Wi
 gcloud auth login
 PROJECT_ID=eco-vibe-project
 gcloud auth application-default set-quota-project $PROJECT_ID
+
+# 1. Trigger the setup script to create the SA and bind Firestore + Vertex AI permissions
+./scripts/setup-iam.sh
+
+# 2. Build and push the container image to Google Container Registry (GCR)
+gcloud builds submit --tag gcr.io/eco-vibe-project/ecovibe-concierge:latest .
+
+# 3. List the container images in GCR
+gcloud container images list-tags gcr.io/eco-vibe-project/ecovibe-concierge
+
+# 4. Force Cloud Run to deploy a fresh revision using your newly compiled registry image
+gcloud run deploy ecovibe-concierge \
+    --image=gcr.io/eco-vibe-project/ecovibe-concierge:latest \
+    --region=us-east1
+    
+# 5. Push your Knative Cloud Run deployment live with the new custom identity
+gcloud run services replace deployment/cloud-run.yaml --region=us-east1
+
+# 6. (Optional Pro-Tip) Tail your live Cloud Run logs in Git Bash to watch the container boot live:
+gcloud run services logs read ecovibe-concierge --region=us-east1 --limit=100
+
+#7. Delete the service
+gcloud run services delete ecovibe-concierge --region=us-east1 --quiet
+
+#8. Delete the container image
+gcloud container images delete gcr.io/eco-vibe-project/ecovibe-concierge:latest --quiet
+
+#9. Delete the service account
+gcloud iam service-accounts delete ecovibe-run-sa@eco-vibe-project.iam.gserviceaccount.com --quiet
+
+#10. Delete the service account key
+gcloud iam service-accounts keys delete [KEY_ID] --iam-account=[SERVICE_ACCOUNT_EMAIL]
 ```
 
 ## **🤝 Team & Acknowledgments**
