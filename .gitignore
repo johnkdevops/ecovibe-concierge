@@ -22,6 +22,7 @@ uv.lock
 
 # Storage
 .storage
+memory/user_profiles.json
 
 # Troubleshooting
 troubleshooting/

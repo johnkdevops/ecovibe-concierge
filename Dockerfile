@@ -30,6 +30,8 @@ ENV PORT=8080
 # Retrieve dependencies compiled during build stage
 COPY --from=builder /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
+ENV UV_CACHE_DIR="/app/.uv-cache"
+ENV UV_PYTHON_PREFERENCE="system"
 
 # Copy internal modular codebase
 COPY main.py ./

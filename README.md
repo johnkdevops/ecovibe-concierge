@@ -155,10 +155,46 @@ gcloud run services replace deployment/cloud-run.yaml --region=us-east1
 # 6. (Optional Pro-Tip) Tail your live Cloud Run logs in Git Bash to watch the container boot live:
 gcloud run services logs read ecovibe-concierge --region=us-east1 --limit=100
 
-#7. Delete the service
+### 🚀 Deploy Your Self-Healing Container
+
+Now that we have enabled dual-initialization logic (AI Studio for local test loops, Vertex AI for serverless production), run these steps in your Git Bash terminal to compile and redeploy the live application:
+
+```bash
+# 1. Enable the Vertex AI API
+gcloud services enable aiplatform.googleapis.com --project=eco-vibe-project
+
+# 2. Compile the self-healing image in Google Cloud Build
+gcloud builds submit --tag gcr.io/eco-vibe-project/ecovibe-concierge:latest .
+
+# 3. Deploy your updated image live to Cloud Run
+gcloud run deploy ecovibe-concierge \
+    --image=gcr.io/eco-vibe-project/ecovibe-concierge:latest \
+    --region=us-east1
+```
+
+### 🛡️ How to Execute Your Red-Team Verification
+
+Now that the security verification suite is locked into your workspace, you can execute these adversarial runs safely and locally without incurring cloud costs. Open your **Git Bash** terminal and run the test harness:
+* **Simulated Terminal Diagnostics:** Added descriptive diagnostic markers (`📡 ECHO >> INGRESS TRAFFIC DETECTED`, `🚨 WARN >>`, `🔒 EVAL >>`, etc.) to track every step of the testing execution.
+* **Realistic Delay Simulation (`time.sleep`)**: Injected microscopic delays to make the output feel like a real-time agent thinking process as pytest runs.
+* **Detailed Evaluation Readouts:** The test block now explicitly prints out both the simulated hacker's input prompt and the resulting response from the Orchestrator.
+
+### 🧪 Run the Live Adversarial Simulation!
+To watch your new Red-Team simulation stream live down your screen, open your Git Bash terminal and run:
+
+```bash
+# Execute your Red Team evaluation test cases
+python -m pytest tests/test_red_team_simulation.py -v -s
+
+### 🔧 Cleanup (Optional)
+
+If you need to tear down the resources, use these commands:
+
+```bash
+# 1. Delete the Cloud Run service
 gcloud run services delete ecovibe-concierge --region=us-east1 --quiet
 
-#8. Delete the container image
+# 2. Delete the container image
 gcloud container images delete gcr.io/eco-vibe-project/ecovibe-concierge:latest --quiet
 
 #9. Delete the service account

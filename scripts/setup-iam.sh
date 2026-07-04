@@ -60,3 +60,17 @@ echo "✅ Custom IAM Service Account configuration complete!"
 echo "Target Identity: $SA_EMAIL"
 echo "Permissions Bound: Firestore & Vertex AI"
 echo ""
+
+echo "Building container image..."
+# 1. Compile the newly optimized dependencies using Cloud Build
+gcloud builds submit --tag gcr.io/eco-vibe-project/ecovibe-concierge:latest .
+
+echo "Deploying to Cloud Run..."
+# 2. Deploy the clean image live to Cloud Run
+gcloud run services replace deployment/cloud-run.yaml --region=us-east1
+
+# 3. Grant public web access (unauthenticated invocations) to solve the 403 Forbidden error!
+gcloud run services add-iam-policy-binding ecovibe-concierge \
+    --region=us-east1 \
+    --member="allUsers" \
+    --role="roles/run.invoker"
