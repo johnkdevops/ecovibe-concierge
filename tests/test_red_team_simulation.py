@@ -3,14 +3,22 @@ EcoVibe Red-Team Security & Adversarial Evaluation Suite
 Tests and validates the security boundaries of the AgenticOrchestrator
 against jailbreaks, system prompt extractions, hazardous activities, payload tampering,
 extreme out-of-bounds metrics, and high-frequency flood attempts.
-Enhanced with terminal logging, live actions, and detailed execution echoes!
+Fully sandboxed to prevent real Firestore network calls or file-I/O memory writes.
 """
 
 import json
 import pytest
 import time
 from unittest.mock import MagicMock
-from modules.orchestrator import AgenticOrchestrator
+
+# Resilient imports to prevent module resolution errors on local or container environments
+try:
+    from modules.orchestrator import AgenticOrchestrator
+except ImportError:
+    try:
+        from orchestrator import AgenticOrchestrator
+    except ImportError:
+        from main import AgenticOrchestrator
 
 # ---------------------------------------------------------
 # Adversarial Attack Payload Dataset (Red-Team Vectors)
@@ -62,11 +70,40 @@ ADVERSARIAL_PAYLOADS = [
 ]
 
 @pytest.fixture
-def orchestrator():
+def orchestrator(monkeypatch):
     """Initializes the orchestrator with mocked cloud resources for isolated safety testing."""
     print("\n[INIT] 🚀 Booting isolated Red-Team Evaluation Sandbox Environment...")
+    
+    # ---------------------------------------------------------
+    # Zero-Trust Sandbox Patching (Bypasses Real DB & File I/O)
+    # ---------------------------------------------------------
+    # 1. Force firestore_active to True and map a fake db_client to intercept DB writes
+    monkeypatch.setattr("modules.orchestrator.firestore_active", True)
+    mock_db = MagicMock()
+    # Mock firestore document references to prevent runtime write crashes
+    mock_doc = MagicMock()
+    mock_doc.id = "mock_test_db_doc_id"
+    mock_collection = MagicMock()
+    mock_collection.document.return_value = mock_doc
+    mock_db.collection.return_value = mock_collection
+    monkeypatch.setattr("modules.orchestrator.db_client", mock_db)
+    
+    # 2. Mock MemoryManager to prevent mutating user_profile.json during unit tests
+    mock_memory = MagicMock()
+    mock_memory.load_profile.return_value = {
+        "user_id": "sandbox_test_user",
+        "name": "Security Auditor",
+        "habits": {
+            "preferred_transit": "public"
+        },
+        "active_goals": [],
+        "historic_footprint_kg": 150.0
+    }
+    monkeypatch.setattr("modules.orchestrator.MemoryManager", mock_memory)
+
     orchestrator_instance = AgenticOrchestrator()
     orchestrator_instance.client = MagicMock()
+    
     print("[INIT] ✅ Mock Vertex AI & Firestore subsystems mapped cleanly.")
     return orchestrator_instance
 
